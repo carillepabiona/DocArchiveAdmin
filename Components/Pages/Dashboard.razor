@@ -1,0 +1,102 @@
+﻿@page "/dashboard"
+@layout MainLayout
+@inject NavigationManager Nav
+@using Microsoft.Maui.Storage
+@using DocArchiveAdmin.Models
+@using DocArchiveAdmin.Services
+
+
+<div class="content">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-left">
+            <h1>DASHBOARD</h1>
+            <p>Document Archiving & Security Management System</p>
+        </div>
+
+        <div class="active-users-card">
+            <div class="users-content">
+                <div class="users-number">@activeUsers</div>
+                <div class="users-label">Active Users</div>
+            </div>
+            <div class="users-icon">👥</div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="recent-activity-section">
+        <h2>Recent Activity</h2>
+
+        <div class="activity-list">
+            @if (activities.Count > 0)
+            {
+                @foreach (var activity in activities)
+                {
+                    <div class="activity-item">
+                        <div class="activity-content">
+                            <h3>@activity.UserName</h3>
+                            <p>@activity.Action</p>
+                        </div>
+                        <div class="activity-time">
+                            <span class="date">@activity.Date.ToString("MMM dd")</span>
+                            <span class="time">@activity.Date.ToString("h:mm tt")</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-activity">
+                    <p>No recent activity</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private int activeUsers = 1;
+    private List<ActivityItem> activities = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        // Sample activity data
+        activities = new List<ActivityItem>
+        {
+            new ActivityItem
+            {
+                UserName = "John Doe",
+                Action = "Upload a document",
+                Date = new DateTime(2026, 1, 23, 11, 59, 0)
+            },
+            new ActivityItem
+            {
+                UserName = "Jane Smith",
+                Action = "Viewed the document",
+                Date = new DateTime(2026, 2, 4, 12, 0, 0)
+            },
+            new ActivityItem
+            {
+                UserName = "Michael Chen",
+                Action = "Log In",
+                Date = new DateTime(2026, 3, 10, 9, 52, 0)
+            },
+            new ActivityItem
+            {
+                UserName = "Lisa Anderson",
+                Action = "Log Out",
+                Date = new DateTime(2025, 12, 17, 17, 0, 0)
+            }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    public class ActivityItem
+    {
+        public string UserName { get; set; }
+        public string Action { get; set; }
+        public DateTime Date { get; set; }
+    }
+}

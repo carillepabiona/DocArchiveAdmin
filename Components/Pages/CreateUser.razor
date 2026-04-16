@@ -1,0 +1,212 @@
+﻿@page "/create-user"
+@layout MainLayout
+@inject NavigationManager Nav
+@inject UserService UserService
+@using System.Text
+@using DocArchiveAdmin.Models
+@using DocArchiveAdmin.Services
+@using DocArchiveAdmin.DTOs
+
+<head>
+    <link rel="stylesheet" href="css/create-user.css" />
+</head>
+
+<div class="content">
+    <div class="create-user-header">
+        <h1>CREATE NEW USER</h1>
+        <p>Add a new user account to the system</p>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="@userModel" OnSubmit="HandleCreateUser">
+
+            <!-- BASIC INFO -->
+            <div class="form-section">
+                <h2 class="section-title">📋 Basic Information</h2>
+
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input class="form-input @(usernameError ? "input-error" : "")"
+                           @bind="userModel.Username"
+                           @oninput="ClearError" />
+                    @if (usernameError)
+                    {
+                        <span class="error-text">Username is required</span>
+                    }
+                </div>
+
+                <input class="form-input" placeholder="Full Name" @bind="userModel.FullName" />
+                <input class="form-input" placeholder="Email" @bind="userModel.Email" />
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="form-section">
+                <h2 class="section-title">🔐 Account Setup</h2>
+
+                <input type="@passwordType"
+                       class="form-input @(passwordError ? "input-error" : "")"
+                       placeholder="Password"
+                       @bind="userModel.TemporaryPassword"
+                       @oninput="ClearError" />
+
+                <button type="button" @onclick="TogglePasswordVisibility">👁️</button>
+
+                @if (passwordError)
+                {
+                    <span class="error-text">Minimum 8 characters</span>
+                }
+
+                <button type="button" @onclick="GenerateSecurePassword">
+                    Generate Password
+                </button>
+
+                <label>
+                    <input type="checkbox" @bind="userModel.ForcePasswordChangeOnLogin" />
+                    Force password change
+                </label>
+            </div>
+
+            <!-- ROLE -->
+            <div class="form-section">
+                <h2>Role</h2>
+
+                <select class="form-input @(roleError ? "input-error" : "")"
+                        @bind="userModel.Role"
+                        @bind:after="ClearError">
+
+                    <option value="">Select Role</option>
+                    <option>Admin</option>
+                    <option>Manager</option>
+                    <option>Staff</option>
+                    <option>Viewer</option>
+                </select>
+            </div>
+
+            <!-- STATUS -->
+            <div class="form-section">
+                <label>
+                    <input type="checkbox" @bind="userModel.IsActive" />
+                    Active
+                </label>
+            </div>
+
+            <!-- ACTIONS -->
+            <button type="submit" disabled="@isSubmitting">
+                @(isSubmitting ? "Creating..." : "Create User")
+            </button>
+
+            <button type="button" @onclick="GoBack">Cancel</button>
+
+            <!-- SUCCESS -->
+            @if (showSuccessMessage)
+            {
+                <p style="color:green;">User created successfully!</p>
+            }
+
+            <!-- ERROR -->
+            @if (!string.IsNullOrEmpty(generalError))
+            {
+                <p style="color:red;">@generalError</p>
+            }
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private UserCreateModel userModel = new();
+    private string passwordType = "password";
+    private bool isSubmitting = false;
+    private bool showSuccessMessage = false;
+    private string generalError = "";
+
+    private bool usernameError = false;
+    private bool passwordError = false;
+    private bool roleError = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        userModel.ForcePasswordChangeOnLogin = true;
+        userModel.IsActive = true;
+        return Task.CompletedTask;
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        passwordType = passwordType == "password" ? "text" : "password";
+    }
+
+    private void GenerateSecurePassword()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        var random = new Random();
+        userModel.TemporaryPassword = new string(Enumerable.Repeat(chars, 12)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    private void ClearError()
+    {
+        usernameError = false;
+        passwordError = false;
+        roleError = false;
+        generalError = "";
+    }
+
+    // 🔥 REAL DATABASE SAVE
+    private async Task HandleCreateUser()
+    {
+        usernameError = string.IsNullOrWhiteSpace(userModel.Username);
+        passwordError = string.IsNullOrWhiteSpace(userModel.TemporaryPassword) || userModel.TemporaryPassword.Length < 8;
+        roleError = string.IsNullOrWhiteSpace(userModel.Role);
+
+        if (usernameError || passwordError || roleError)
+            return;
+
+        isSubmitting = true;
+        generalError = "";
+
+        try
+        {
+            var dto = new UserCreateDto
+            {
+                Username = userModel.Username,
+                Password = userModel.TemporaryPassword,
+                FullName = userModel.FullName,
+                Role = userModel.Role,
+                IsActive = userModel.IsActive,
+                ForcePasswordChangeOnLogin = userModel.ForcePasswordChangeOnLogin
+            };
+
+            await UserService.CreateUserAsync(dto);
+
+            showSuccessMessage = true;
+
+            await Task.Delay(1500);
+            Nav.NavigateTo("/user-management");
+        }
+        catch (Exception ex)
+        {
+            generalError = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/user-management");
+    }
+
+    public class UserCreateModel
+    {
+        public string Username { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string TemporaryPassword { get; set; }
+        public bool ForcePasswordChangeOnLogin { get; set; }
+        public string Role { get; set; }
+        public bool IsActive { get; set; }
+    }
+}

@@ -1,0 +1,394 @@
+﻿
+/* CONTENT AREA */
+.content {
+    flex: 1;
+    padding: 30px 40px;
+    background-color: #f4f6f8;
+    overflow-y: auto;
+}
+
+/* PAGE HEADER */
+.management-header {
+    margin-bottom: 28px;
+}
+
+    .management-header h1 {
+        color: #2d8659;
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 6px 0;
+        letter-spacing: 0.5px;
+    }
+
+    .management-header p {
+        color: #2d8659;
+        font-size: 13px;
+        font-weight: 500;
+        margin: 0;
+    }
+
+/* SEARCH SECTION */
+.search-section {
+    margin-bottom: 28px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 420px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    background-color: white;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+    .search-input::placeholder {
+        color: #9ca3af;
+        font-weight: 600;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #2d8659;
+        background-color: #f0fdf4;
+        box-shadow: 0 0 0 4px rgba(45, 134, 89, 0.1);
+    }
+
+.search-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+/* TABLE WRAPPER */
+.table-wrapper {
+    background: white;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    min-height: 300px;
+}
+
+/* TABLE */
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    .users-table thead {
+        background-color: #f9fafb;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+        .users-table thead th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #1f2937;
+            letter-spacing: 0.3px;
+        }
+
+    .users-table tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.2s;
+    }
+
+        .users-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .users-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+    .users-table tbody td {
+        padding: 16px;
+        color: #374151;
+    }
+
+/* TABLE CELLS */
+.user-id {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.email {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* STATUS BADGE */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+}
+
+    .status-badge.active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.inactive {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+/* ROLE BADGE */
+.role-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+    .role-badge.military {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .role-badge.civilian {
+        background: #dbeafe;
+        color: #0c2d6b;
+    }
+
+    .role-badge.admin {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+/* ACTIONS COLUMN */
+.actions {
+    position: relative;
+    text-align: center;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 8px;
+    transition: all 0.2s;
+    border-radius: 6px;
+}
+
+    .action-button:hover {
+        color: #2d8659;
+        background: #f3f4f6;
+        transform: scale(1.1);
+    }
+
+/* ACTION MENU */
+.action-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    min-width: 160px;
+    margin-top: 8px;
+    overflow: hidden;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 12px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 8px;
+}
+
+    .menu-item:last-child {
+        border-bottom: none;
+    }
+
+    .menu-item:hover {
+        background-color: #f9fafb;
+        color: #2d8659;
+    }
+
+    .menu-item.delete:hover {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+.menu-icon {
+    font-size: 14px;
+}
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    color: #9ca3af;
+    padding: 60px 16px;
+    font-style: italic;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .content {
+        padding: 25px;
+    }
+
+    .management-header h1 {
+        font-size: 28px;
+    }
+
+    .search-wrapper {
+        max-width: 100%;
+    }
+
+    .users-table {
+        font-size: 12px;
+    }
+
+        .users-table thead th,
+        .users-table tbody td {
+            padding: 14px;
+        }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 20px;
+    }
+
+    .management-header h1 {
+        font-size: 24px;
+    }
+
+    .management-header p {
+        font-size: 12px;
+    }
+
+    .search-input {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .users-table {
+        font-size: 11px;
+    }
+
+        .users-table thead th,
+        .users-table tbody td {
+            padding: 12px 10px;
+        }
+
+    .status-badge,
+    .role-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+        min-width: 70px;
+    }
+
+    .action-button {
+        font-size: 18px;
+        padding: 6px;
+    }
+
+    .action-menu {
+        min-width: 140px;
+    }
+
+    .menu-item {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 15px;
+    }
+
+    .management-header h1 {
+        font-size: 20px;
+    }
+
+    .management-header p {
+        font-size: 11px;
+    }
+
+    .search-input {
+        padding: 9px 10px;
+        font-size: 11px;
+    }
+
+    .users-table {
+        font-size: 10px;
+    }
+
+        .users-table thead th,
+        .users-table tbody td {
+            padding: 10px 8px;
+        }
+
+    .status-badge,
+    .role-badge {
+        padding: 4px 6px;
+        font-size: 10px;
+        min-width: 60px;
+    }
+
+    .action-button {
+        font-size: 16px;
+        padding: 4px;
+    }
+
+    .action-menu {
+        min-width: 130px;
+    }
+
+    .menu-item {
+        padding: 7px 10px;
+        font-size: 10px;
+    }
+}

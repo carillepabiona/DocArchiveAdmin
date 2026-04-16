@@ -1,0 +1,235 @@
+﻿@page "/user-management"
+@layout MainLayout
+@inject NavigationManager Nav
+@using Microsoft.Maui.Storage
+@using DocArchiveAdmin.Models
+@using DocArchiveAdmin.Services
+
+<head>
+    <link href="css/users.css" rel="stylesheet" />
+</head>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="management-header">
+        <h1>USER MANAGEMENT</h1>
+        <p>Manage and monitor all users in the system</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-wrapper">
+            <input type="text"
+                   class="search-input"
+                   placeholder="SEARCH USERS"
+                   @bind="searchQuery"
+                   @oninput="@((ChangeEventArgs e) => OnSearchChanged(e.Value?.ToString()))" />
+            <span class="search-icon">🔍</span>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="table-wrapper">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (filteredUsers.Count > 0)
+                {
+                    @foreach (var user in filteredUsers)
+                    {
+                        <tr>
+                            <td class="user-id">@user.UserId</td>
+                            <td class="email">@user.Email</td>
+                            <td class="status">
+                                <span class="status-badge @user.Status.ToLower()">
+                                    @user.Status
+                                </span>
+                            </td>
+                            <td class="role">
+                                <span class="role-badge @GetRoleBadgeClass(user.Role)">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td class="joined">@user.JoinedDate.ToString("MM-dd-yy")</td>
+                            <td class="actions">
+                                <button class="action-button" @onclick="@(() => OpenActionMenu(user.Id))">
+                                    ⋮
+                                </button>
+                                @if (openActionMenuId == user.Id)
+                                {
+                                    <div class="action-menu">
+                                        <button class="menu-item" @onclick="@(() => ViewUser(user))">
+                                            <span class="menu-icon">👁️</span> View
+                                        </button>
+                                        <button class="menu-item" @onclick="@(() => EditUser(user))">
+                                            <span class="menu-icon">✏️</span> Edit
+                                        </button>
+                                        <button class="menu-item" @onclick="@(() => ResetPassword(user))">
+                                            <span class="menu-icon">🔑</span> Reset Password
+                                        </button>
+                                        <button class="menu-item delete" @onclick="@(() => DeactivateUser(user))">
+                                            <span class="menu-icon">🚫</span> Deactivate
+                                        </button>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state">No users found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+@code {
+    private List<User> allUsers = new();
+    private List<User> filteredUsers = new();
+    private string searchQuery = "";
+    private int? openActionMenuId = null;
+
+    protected override Task OnInitializedAsync()
+    {
+        // Sample user data
+        allUsers = new List<User>
+        {
+            new User
+            {
+                Id = 1,
+                UserId = "10035",
+                Email = "juan.delacruz@afp.mil.ph",
+                Status = "Active",
+                Role = "Military Personnel",
+                JoinedDate = new DateTime(2025, 11, 25)
+            },
+            new User
+            {
+                Id = 2,
+                UserId = "10234",
+                Email = "alice@afp.mil.ph",
+                Status = "Active",
+                Role = "Civilian",
+                JoinedDate = new DateTime(2026, 1, 14)
+            },
+            new User
+            {
+                Id = 3,
+                UserId = "10049",
+                Email = "bob@afp.mil.ph",
+                Status = "Inactive",
+                Role = "Civilian",
+                JoinedDate = new DateTime(2025, 12, 8)
+            },
+            new User
+            {
+                Id = 4,
+                UserId = "10087",
+                Email = "maria@afp.mil.ph",
+                Status = "Active",
+                Role = "Admin",
+                JoinedDate = new DateTime(2025, 10, 5)
+            },
+            new User
+            {
+                Id = 5,
+                UserId = "10102",
+                Email = "carlos@afp.mil.ph",
+                Status = "Active",
+                Role = "Civilian",
+                JoinedDate = new DateTime(2026, 2, 10)
+            }
+        };
+
+        filteredUsers = allUsers;
+        return Task.CompletedTask;
+    }
+
+    private void OnSearchChanged(string query)
+    {
+        searchQuery = query ?? "";
+        ApplySearch();
+    }
+
+    private void ApplySearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredUsers = allUsers;
+        }
+        else
+        {
+            var lowerSearch = searchQuery.ToLower();
+            filteredUsers = allUsers
+                .Where(u => u.UserId.Contains(lowerSearch) ||
+                            u.Email.Contains(lowerSearch) ||
+                            u.Role.Contains(lowerSearch))
+                .ToList();
+        }
+    }
+
+    private void OpenActionMenu(int userId)
+    {
+        openActionMenuId = openActionMenuId == userId ? null : userId;
+    }
+
+    private void ViewUser(User user)
+    {
+        Console.WriteLine($"Viewing user: {user.Email}");
+        openActionMenuId = null;
+    }
+
+    private void EditUser(User user)
+    {
+        Console.WriteLine($"Editing user: {user.Email}");
+        openActionMenuId = null;
+    }
+
+    private void ResetPassword(User user)
+    {
+        Console.WriteLine($"Resetting password for: {user.Email}");
+        openActionMenuId = null;
+    }
+
+    private void DeactivateUser(User user)
+    {
+        user.Status = user.Status == "Active" ? "Inactive" : "Active";
+        openActionMenuId = null;
+    }
+
+    private string GetRoleBadgeClass(string role)
+    {
+        return role.ToLower() switch
+        {
+            "military personnel" => "military",
+            "civilian" => "civilian",
+            "admin" => "admin",
+            _ => "civilian"
+        };
+    }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string UserId { get; set; }
+        public string Email { get; set; }
+        public string Status { get; set; }
+        public string Role { get; set; }
+        public DateTime JoinedDate { get; set; }
+    }
+}

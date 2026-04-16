@@ -1,0 +1,270 @@
+﻿@page "/documents"
+@layout MainLayout
+@inject NavigationManager Nav
+@using Microsoft.Maui.Storage
+@using DocArchiveAdmin.Models
+@using DocArchiveAdmin.Services
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="management-header">
+        <h1>DOCUMENT MANAGEMENT</h1>
+        <p>Manage your account settings and preferences.</p>
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="search-filter-section">
+        <div class="search-container">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="SEARCH NAME" 
+                @bind="searchName"
+                @oninput="@((ChangeEventArgs e) => OnSearchNameChanged(e.Value?.ToString()))"
+            />
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <div class="search-container">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="SEARCH DOCUMENT ID" 
+                @bind="searchDocumentId"
+                @oninput="@((ChangeEventArgs e) => OnSearchDocumentIdChanged(e.Value?.ToString()))"
+            />
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <select class="filter-select"
+                @bind="selectedSecurityLevel"
+                @bind:after="OnSecurityLevelChanged">
+
+            <option value="">SECURITY LEVEL</option>
+            <option value="1">Level 1 - Unclassified</option>
+            <option value="2">Level 2 - Confidential</option>
+            <option value="3">Level 3 - Secret</option>
+            <option value="4">Level 4 - Top Secret</option>
+            <option value="5">Level 5 - Highly Classified</option>
+        </select>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="table-wrapper">
+        <table class="documents-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Security Level</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (filteredDocuments.Count > 0)
+                {
+                    @foreach (var doc in filteredDocuments)
+                    {
+                        <tr>
+                            <td class="user-id">@doc.UserId</td>
+                            <td class="title">@doc.Title</td>
+                            <td class="type">@doc.Type</td>
+                            <td class="security-level">
+                                <span class="level-badge" style="@GetSecurityLevelStyle(doc.SecurityLevel)">
+                                    @doc.SecurityLevel
+                                </span>
+                            </td>
+                            <td class="date">@doc.Date.ToString("MM-dd-yy")</td>
+                            <td class="actions">
+                                <button class="action-button" @onclick="@(() => OpenActionMenu(doc.Id))">
+                                    ⋮
+                                </button>
+                                @if (openActionMenuId == doc.Id)
+                                {
+                                    <div class="action-menu">
+                                        <button class="menu-item" @onclick="@(() => ViewDocument(doc))">
+                                            <span class="menu-icon">👁️</span> View
+                                        </button>
+                                        <button class="menu-item" @onclick="@(() => EditDocument(doc))">
+                                            <span class="menu-icon">✏️</span> Edit
+                                        </button>
+                                        <button class="menu-item" @onclick="@(() => DownloadDocument(doc))">
+                                            <span class="menu-icon">⬇️</span> Download
+                                        </button>
+                                        <button class="menu-item" @onclick="@(() => ShareDocument(doc))">
+                                            <span class="menu-icon">📤</span> Share
+                                        </button>
+                                        <button class="menu-item delete" @onclick="@(() => DeleteDocument(doc))">
+                                            <span class="menu-icon">🗑️</span> Delete
+                                        </button>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state">No documents found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@code {
+    private List<Document> allDocuments = new();
+    private List<Document> filteredDocuments = new();
+    private string searchName = "";
+    private string searchDocumentId = "";
+    private string selectedSecurityLevel = "";
+    private int? openActionMenuId = null;
+
+    protected override Task OnInitializedAsync()
+    {
+        // Sample document data
+        allDocuments = new List<Document>
+        {
+            new Document
+            {
+                Id = 1,
+                UserId = "10035",
+                Title = "Operational Plan Mindanao 2026",
+                Type = "Strategic Security",
+                SecurityLevel = 5,
+                Date = new DateTime(2025, 11, 25)
+            },
+            new Document
+            {
+                Id = 2,
+                UserId = "10234",
+                Title = "Intelligence Brief - January 2026",
+                Type = "Actionable Insight",
+                SecurityLevel = 3,
+                Date = new DateTime(2026, 1, 14)
+            },
+            new Document
+            {
+                Id = 3,
+                UserId = "10049",
+                Title = "Personnel Roster Q1 2026",
+                Type = "Workforce Inventory",
+                SecurityLevel = 1,
+                Date = new DateTime(2025, 12, 8)
+            },
+            new Document
+            {
+                Id = 4,
+                UserId = "10087",
+                Title = "Budget Allocation Report",
+                Type = "Financial Document",
+                SecurityLevel = 4,
+                Date = new DateTime(2026, 2, 3)
+            },
+            new Document
+            {
+                Id = 5,
+                UserId = "10102",
+                Title = "Training Schedule 2026",
+                Type = "Administrative",
+                SecurityLevel = 2,
+                Date = new DateTime(2026, 1, 20)
+            }
+        };
+
+        filteredDocuments = allDocuments;
+        return Task.CompletedTask;
+    }
+
+    private void OnSearchNameChanged(string value)
+    {
+        searchName = value ?? "";
+        ApplyFilters();
+    }
+
+    private void OnSearchDocumentIdChanged(string value)
+    {
+        searchDocumentId = value ?? "";
+        ApplyFilters();
+    }
+
+    private void OnSecurityLevelChanged()
+    {
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredDocuments = allDocuments
+            .Where(d =>
+                (string.IsNullOrWhiteSpace(searchName) || d.Title.Contains(searchName, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(searchDocumentId) || d.UserId.Contains(searchDocumentId)) &&
+                (string.IsNullOrWhiteSpace(selectedSecurityLevel) || d.SecurityLevel.ToString() == selectedSecurityLevel)
+            )
+            .ToList();
+    }
+
+    private void OpenActionMenu(int docId)
+    {
+        openActionMenuId = openActionMenuId == docId ? null : docId;
+    }
+
+    private void ViewDocument(Document doc)
+    {
+        Console.WriteLine($"Viewing: {doc.Title}");
+        openActionMenuId = null;
+    }
+
+    private void EditDocument(Document doc)
+    {
+        Console.WriteLine($"Editing: {doc.Title}");
+        openActionMenuId = null;
+    }
+
+    private void DownloadDocument(Document doc)
+    {
+        Console.WriteLine($"Downloading: {doc.Title}");
+        openActionMenuId = null;
+    }
+
+    private void ShareDocument(Document doc)
+    {
+        Console.WriteLine($"Sharing: {doc.Title}");
+        openActionMenuId = null;
+    }
+
+    private void DeleteDocument(Document doc)
+    {
+        allDocuments.Remove(doc);
+        ApplyFilters();
+        openActionMenuId = null;
+    }
+
+    private string GetSecurityLevelStyle(int level)
+    {
+        return level switch
+        {
+            1 => "background: #10b981; color: white;",
+            2 => "background: #3b82f6; color: white;",
+            3 => "background: #f59e0b; color: white;",
+            4 => "background: #ef4444; color: white;",
+            5 => "background: #8b5cf6; color: white;",
+            _ => "background: #6b7280; color: white;"
+        };
+    }
+
+    public class Document
+    {
+        public int Id { get; set; }
+        public string UserId { get; set; }
+        public string Title { get; set; }
+        public string Type { get; set; }
+        public int SecurityLevel { get; set; }
+        public DateTime Date { get; set; }
+    }
+}
