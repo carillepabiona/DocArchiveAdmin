@@ -1,7 +1,7 @@
 ﻿<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <!-- 🔥 REMOVE DefaultLayout -->
-        <RouteView RouteData="@routeData" />
+        <RouteView RouteData="@routeData"
+                   DefaultLayout="@typeof(MainLayout)" />
     </Found>
 
     <NotFound>

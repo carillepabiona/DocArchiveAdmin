@@ -111,7 +111,6 @@
     private int remainingMinutes =>
         isLocked ? (int)Math.Ceiling((lockUntil - DateTime.Now).TotalMinutes) : 0;
 
-    // ================= INIT WINDOW MODE =================
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
@@ -120,13 +119,11 @@
         }
     }
 
-    // ================= EXIT APP =================
     private void ExitApp()
     {
         WindowService?.ExitApp();
     }
 
-    // ================= LOGIN =================
     private async Task HandleLogin()
     {
         ValidateInputs();
@@ -164,7 +161,6 @@
                 return;
             }
 
-            // ================= SUCCESS =================
             failedAttempts = 0;
             isLocked = false;
 
@@ -176,31 +172,18 @@
                 return;
             }
 
-            // ================= STORE JWT =================
+            // ================= STORE SESSION =================
+            // store session
             await SecureStorage.SetAsync("jwt_token", result.Token);
             await SecureStorage.SetAsync("username", result.Username);
             await SecureStorage.SetAsync("role", result.Role);
 
-            WindowService?.SetMainAppMode();
+            WindowService.Attach(App.Current.Windows[0]);
+            WindowService.SetMainAppMode();
 
-            // ================= ROLE / FIRST LOGIN FLOW =================
+            await Task.Delay(150);
 
-            // 🔥 FORCE PASSWORD CHANGE
-            if (result.IsFirstLogin)
-            {
-                Nav.NavigateTo("/change-password", true);
-                return;
-            }
-
-            // 🔥 ROLE BASED REDIRECT (OPTIONAL)
-            if (result.Role == "Admin")
-            {
-                Nav.NavigateTo("/dashboard", true);
-            }
-            else
-            {
-                Nav.NavigateTo("/dashboard", true);
-            }
+            Nav.NavigateTo("/dashboard", false);
         }
         catch (Exception ex)
         {
@@ -212,7 +195,6 @@
         }
     }
 
-    // ================= LOCK SYSTEM =================
     private void LockAccount()
     {
         isLocked = true;
@@ -233,7 +215,6 @@
         });
     }
 
-    // ================= VALIDATION =================
     private void ValidateInputs()
     {
         usernameError = string.IsNullOrWhiteSpace(loginModel.Username);
@@ -245,7 +226,6 @@
         usernameError = false;
     }
 
-    // ================= PASSWORD TOGGLE =================
     private void TogglePassword()
     {
         passwordType = passwordType == "password" ? "text" : "password";

@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager Nav
 @using Microsoft.Maui.Storage
+@using DocArchiveAdmin.Services
+@inject WindowService WindowService
 @implements IDisposable
 
 <div class="app-shell">
@@ -249,7 +251,13 @@
         showNotificationsPanel = !showNotificationsPanel;
         showUserMenu = false;
     }
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            WindowService.Attach(App.Current.Windows[0]);
+        }
+    }
     private void CloseNotifications()
     {
         showNotificationsPanel = false;

@@ -45,18 +45,24 @@ namespace DocArchiveAdmin.Services
         public void SetMainAppMode()
         {
 #if WINDOWS
-                if (_appWindow == null) return;
+            if (_appWindow == null) return;
 
-                var presenter = _appWindow.Presenter as OverlappedPresenter;
+            var presenter = _appWindow.Presenter as OverlappedPresenter;
 
-                // 🔥 RESTORE TITLE BAR
-                presenter.SetBorderAndTitleBar(true, true);
+            presenter.SetBorderAndTitleBar(true, true);
 
-                presenter.IsMaximizable = true;
-                presenter.IsMinimizable = true;
-                presenter.IsResizable = true;
+            presenter.IsMaximizable = true;
+            presenter.IsMinimizable = true;
+            presenter.IsResizable = true;
 
-                _appWindow.Resize(new SizeInt32(1200, 800));
+            var displayArea = DisplayArea.GetFromWindowId(
+                _appWindow.Id,
+                DisplayAreaFallback.Primary
+            );
+
+            var workArea = displayArea.WorkArea;
+
+            _appWindow.MoveAndResize(workArea);
 #endif
         }
 
