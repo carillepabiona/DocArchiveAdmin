@@ -12,31 +12,61 @@
 </head>
 
 <div class="content">
+
     <div class="create-user-header">
         <h1>CREATE NEW USER</h1>
         <p>Add a new user account to the system</p>
     </div>
 
     <div class="form-container">
+
         <EditForm Model="@userModel" OnSubmit="HandleCreateUser">
 
             <!-- BASIC INFO -->
             <div class="form-section">
                 <h2 class="section-title">📋 Basic Information</h2>
 
-                <div class="form-group">
-                    <label>Username *</label>
-                    <input class="form-input @(usernameError ? "input-error" : "")"
-                           @bind="userModel.Username"
-                           @oninput="ClearError" />
-                    @if (usernameError)
-                    {
-                        <span class="error-text">Username is required</span>
-                    }
-                </div>
+                <!-- USER CODE -->
+                <input class="form-input" value="@userModel.UserCode" disabled />
 
-                <input class="form-input" placeholder="Full Name" @bind="userModel.FullName" />
-                <input class="form-input" placeholder="Email" @bind="userModel.Email" />
+                <!-- USERNAME -->
+                <input class="form-input @(usernameError ? "input-error" : "")"
+                       placeholder="Username"
+                       @bind="userModel.Username"
+                       @oninput="ClearError" />
+
+                @if (usernameError)
+                {
+                    <span class="error-text">Username is required</span>
+                }
+
+                <!-- FULL NAME -->
+                <input class="form-input"
+                       placeholder="Full Name"
+                       @bind="userModel.FullName" />
+
+                <!-- EMAIL -->
+                <input class="form-input"
+                       placeholder="Email"
+                       value="@userModel.Email"
+                       @oninput="ValidateEmail" />
+
+                @if (!string.IsNullOrEmpty(emailError))
+                {
+                    <span class="error-text">@emailError</span>
+                }
+
+                <!-- CONTACT NUMBER -->
+                <input class="form-input"
+                       placeholder="Contact Number"
+                       value="@userModel.ContactNumber"
+                       @oninput="FormatContactNumber" />
+
+                <!-- ADDRESS -->
+                <input class="form-input"
+                       placeholder="Address"
+                       @bind="userModel.Address" />
+
             </div>
 
             <!-- PASSWORD -->
@@ -97,13 +127,11 @@
 
             <button type="button" @onclick="GoBack">Cancel</button>
 
-            <!-- SUCCESS -->
             @if (showSuccessMessage)
             {
                 <p style="color:green;">User created successfully!</p>
             }
 
-            <!-- ERROR -->
             @if (!string.IsNullOrEmpty(generalError))
             {
                 <p style="color:red;">@generalError</p>
@@ -114,7 +142,9 @@
 </div>
 
 @code {
+
     private UserCreateModel userModel = new();
+
     private string passwordType = "password";
     private bool isSubmitting = false;
     private bool showSuccessMessage = false;
@@ -124,26 +154,94 @@
     private bool passwordError = false;
     private bool roleError = false;
 
+    private string emailError = "";
+
+    // =========================
+    // INIT
+    // =========================
     protected override Task OnInitializedAsync()
     {
+        userModel.UserCode = GenerateUserCode();
         userModel.ForcePasswordChangeOnLogin = true;
         userModel.IsActive = true;
+        userModel.ContactNumber = "+63";
+
         return Task.CompletedTask;
     }
 
+    // =========================
+    // USER CODE GENERATOR
+    // =========================
+    private string GenerateUserCode()
+    {
+        var random = new Random();
+        return random.Next(10000, 99999).ToString();
+    }
+
+    // =========================
+    // PASSWORD TOGGLE
+    // =========================
     private void TogglePasswordVisibility()
     {
         passwordType = passwordType == "password" ? "text" : "password";
     }
 
+    // =========================
+    // PASSWORD GENERATOR
+    // =========================
     private void GenerateSecurePassword()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         var random = new Random();
-        userModel.TemporaryPassword = new string(Enumerable.Repeat(chars, 12)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+
+        userModel.TemporaryPassword = new string(
+            Enumerable.Repeat(chars, 12)
+            .Select(s => s[random.Next(s.Length)]).ToArray()
+        );
     }
 
+    // =========================
+    // EMAIL VALIDATION
+    // =========================
+    private void ValidateEmail(ChangeEventArgs e)
+    {
+        userModel.Email = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(userModel.Email))
+        {
+            emailError = "Email is required";
+        }
+        else if (!userModel.Email.Contains("@"))
+        {
+            emailError = "Email must contain @";
+        }
+        else
+        {
+            emailError = "";
+        }
+    }
+
+    // =========================
+    // CONTACT FORMAT (+63)
+    // =========================
+    private void FormatContactNumber(ChangeEventArgs e)
+    {
+        var input = e.Value?.ToString() ?? "";
+
+        if (!input.StartsWith("+63"))
+            input = "+63";
+
+        var digits = new string(input.Skip(3).Where(char.IsDigit).ToArray());
+
+        if (digits.Length > 10)
+            digits = digits.Substring(0, 10);
+
+        userModel.ContactNumber = "+63" + digits;
+    }
+
+    // =========================
+    // CLEAR ERRORS
+    // =========================
     private void ClearError()
     {
         usernameError = false;
@@ -152,26 +250,31 @@
         generalError = "";
     }
 
-    // 🔥 REAL DATABASE SAVE
+    // =========================
+    // SUBMIT
+    // =========================
     private async Task HandleCreateUser()
     {
         usernameError = string.IsNullOrWhiteSpace(userModel.Username);
         passwordError = string.IsNullOrWhiteSpace(userModel.TemporaryPassword) || userModel.TemporaryPassword.Length < 8;
         roleError = string.IsNullOrWhiteSpace(userModel.Role);
 
-        if (usernameError || passwordError || roleError)
+        if (usernameError || passwordError || roleError || !string.IsNullOrEmpty(emailError))
             return;
 
         isSubmitting = true;
-        generalError = "";
 
         try
         {
             var dto = new UserCreateDto
             {
+                UserCode = userModel.UserCode,
                 Username = userModel.Username,
                 Password = userModel.TemporaryPassword,
                 FullName = userModel.FullName,
+                Email = userModel.Email,
+                ContactNumber = userModel.ContactNumber,
+                Address = userModel.Address,
                 Role = userModel.Role,
                 IsActive = userModel.IsActive,
                 ForcePasswordChangeOnLogin = userModel.ForcePasswordChangeOnLogin
@@ -199,11 +302,19 @@
         Nav.NavigateTo("/user-management");
     }
 
+    // =========================
+    // MODEL
+    // =========================
     public class UserCreateModel
     {
+        public string? UserCode { get; set; }
         public string Username { get; set; }
         public string FullName { get; set; }
-        public string Email { get; set; }
+
+        public string? Email { get; set; }
+        public string? ContactNumber { get; set; }
+        public string? Address { get; set; }
+
         public string TemporaryPassword { get; set; }
         public bool ForcePasswordChangeOnLogin { get; set; }
         public string Role { get; set; }
