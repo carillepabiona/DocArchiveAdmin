@@ -17,11 +17,29 @@ namespace DocArchiveAdmin.Services
             _http = http;
         }
 
+        // =========================
+        // CREATE USER
+        // =========================
         public async Task<bool> CreateUserAsync(UserCreateDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/users", dto);
-
             return response.IsSuccessStatusCode;
+        }
+
+        // =========================
+        // GET ROLES (NEW)
+        // =========================
+        public async Task<List<RoleDto>> GetRolesAsync()
+        {
+            try
+            {
+                var roles = await _http.GetFromJsonAsync<List<RoleDto>>("api/roles");
+                return roles ?? new List<RoleDto>();
+            }
+            catch
+            {
+                return new List<RoleDto>();
+            }
         }
     }
 }

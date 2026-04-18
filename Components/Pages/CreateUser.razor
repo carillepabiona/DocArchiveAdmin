@@ -56,9 +56,10 @@
 
                     <!-- PHONE -->
                     <div class="phone-wrapper full-width">
-                        <span class="phone-prefix"></span>
+                        <span class="phone-prefix">+63</span>
+
                         <input class="form-input"
-                               placeholder="Contact Number"
+                               placeholder="9XXXXXXXXX"
                                value="@userModel.ContactNumber"
                                @oninput="FormatContactNumber" />
                     </div>
@@ -123,10 +124,13 @@
                             @bind:after="ClearError">
 
                         <option value="">Select Role</option>
-                        <option>Admin</option>
-                        <option>Manager</option>
-                        <option>Staff</option>
-                        <option>Viewer</option>
+
+                        @foreach (var role in roles)
+                        {
+                            <option value="@role.RoleName">
+                                @role.RoleName
+                            </option>
+                        }
 
                     </select>
                 </div>
@@ -180,17 +184,19 @@
 
     private string emailError = "";
 
+    private List<RoleDto> roles = new();
+
     // =========================
     // INIT
     // =========================
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         userModel.UserCode = GenerateUserCode();
         userModel.ForcePasswordChangeOnLogin = true;
         userModel.IsActive = true;
-        userModel.ContactNumber = "+63";
+        userModel.ContactNumber = "";
 
-        return Task.CompletedTask;
+        roles = await UserService.GetRolesAsync();
     }
 
     // =========================
@@ -252,15 +258,18 @@
     {
         var input = e.Value?.ToString() ?? "";
 
-        if (!input.StartsWith("+63"))
-            input = "+63";
+        // keep digits only
+        var digits = new string(input.Where(char.IsDigit).ToArray());
 
-        var digits = new string(input.Skip(3).Where(char.IsDigit).ToArray());
+        // enforce starting rule (PH mobile starts with 9)
+        if (digits.Length > 0 && !digits.StartsWith("9"))
+            digits = "9" + digits;
 
+        // limit to 10 digits
         if (digits.Length > 10)
             digits = digits.Substring(0, 10);
 
-        userModel.ContactNumber = "+63" + digits;
+        userModel.ContactNumber = digits;
     }
 
     // =========================
@@ -321,6 +330,9 @@
         }
     }
 
+
+   
+
     private void GoBack()
     {
         Nav.NavigateTo("/user-management");
@@ -343,5 +355,11 @@
         public bool ForcePasswordChangeOnLogin { get; set; }
         public string Role { get; set; }
         public bool IsActive { get; set; }
+    }
+
+    public class Role
+    {
+        public int Id { get; set; }
+        public string RoleName { get; set; }
     }
 }
