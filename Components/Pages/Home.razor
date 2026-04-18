@@ -2,21 +2,19 @@
 @inject NavigationManager Nav
 @inject HttpClient Http
 @layout EmptyLayout
-@using DocArchiveAdmin.Services
 @inject WindowService WindowService
 @inject IJSRuntime JS
 @using DocArchiveAdmin.Models
+@using DocArchiveAdmin.Services
 
 <head>
     <link rel="stylesheet" href="css/login.css" />
 </head>
 
 <div class="login-page">
-    <button class="close-btn" @onclick="ExitApp">
-        ✕
-    </button>
-    <div class="login-container">
+    <button class="close-btn" @onclick="ExitApp">✕</button>
 
+    <div class="login-container">
 
         <div class="logo-section">
             <img src="images/logo_afp.png" class="logo" />
@@ -98,7 +96,6 @@
     private string? errorMessage;
 
     private bool isLoading = false;
-
     private bool usernameError;
     private bool passwordError;
 
@@ -150,7 +147,7 @@
             if (!response.IsSuccessStatusCode)
             {
                 failedAttempts++;
-                errorMessage = "Username or password is incorrect.";
+                errorMessage = "Invalid username or password.";
 
                 if (failedAttempts >= 3)
                 {
@@ -172,8 +169,14 @@
                 return;
             }
 
+            // ================= ROLE CHECK (ADMIN ONLY APP) =================
+            if (result.Role != "Admin")
+            {
+                errorMessage = "Access denied. This application is for Admin users only.";
+                return;
+            }
+
             // ================= STORE SESSION =================
-            // store session
             await SecureStorage.SetAsync("jwt_token", result.Token);
             await SecureStorage.SetAsync("username", result.Username);
             await SecureStorage.SetAsync("role", result.Role);
@@ -224,6 +227,7 @@
     private void ClearError(ChangeEventArgs e)
     {
         usernameError = false;
+        errorMessage = "";
     }
 
     private void TogglePassword()
