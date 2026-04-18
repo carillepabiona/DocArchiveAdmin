@@ -7,134 +7,158 @@
 @using DocArchiveAdmin.Services
 @using DocArchiveAdmin.DTOs
 
-<head>
-    <link rel="stylesheet" href="css/create-user.css" />
-</head>
+<link rel="stylesheet" href="css/create-user.css" />
 
 <div class="content">
 
+    <!-- HEADER -->
     <div class="create-user-header">
         <h1>CREATE NEW USER</h1>
         <p>Add a new user account to the system</p>
     </div>
 
+    <!-- FORM -->
     <div class="form-container">
 
         <EditForm Model="@userModel" OnSubmit="HandleCreateUser">
 
             <!-- BASIC INFO -->
             <div class="form-section">
-                <h2 class="section-title">📋 Basic Information</h2>
+                <div class="section-title">📋 Basic Information</div>
 
-                <!-- USER CODE -->
-                <input class="form-input" value="@userModel.UserCode" disabled />
+                <div class="form-grid">
 
-                <!-- USERNAME -->
-                <input class="form-input @(usernameError ? "input-error" : "")"
-                       placeholder="Username"
-                       @bind="userModel.Username"
-                       @oninput="ClearError" />
+                    <input class="form-input" value="@userModel.UserCode" disabled />
 
-                @if (usernameError)
-                {
-                    <span class="error-text">Username is required</span>
-                }
+                    <input class="form-input @(usernameError ? "input-error" : "")"
+                           placeholder="Username"
+                           @bind="userModel.Username"
+                           @oninput="ClearError" />
 
-                <!-- FULL NAME -->
-                <input class="form-input"
-                       placeholder="Full Name"
-                       @bind="userModel.FullName" />
+                    @if (usernameError)
+                    {
+                        <small class="error-text">Username is required</small>
+                    }
 
-                <!-- EMAIL -->
-                <input class="form-input"
-                       placeholder="Email"
-                       value="@userModel.Email"
-                       @oninput="ValidateEmail" />
+                    <input class="form-input"
+                           placeholder="Full Name"
+                           @bind="userModel.FullName" />
 
-                @if (!string.IsNullOrEmpty(emailError))
-                {
-                    <span class="error-text">@emailError</span>
-                }
+                    <input class="form-input"
+                           placeholder="Email"
+                           value="@userModel.Email"
+                           @oninput="ValidateEmail" />
 
-                <!-- CONTACT NUMBER -->
-                <input class="form-input"
-                       placeholder="Contact Number"
-                       value="@userModel.ContactNumber"
-                       @oninput="FormatContactNumber" />
+                    @if (!string.IsNullOrEmpty(emailError))
+                    {
+                        <small class="error-text">@emailError</small>
+                    }
 
-                <!-- ADDRESS -->
-                <input class="form-input"
-                       placeholder="Address"
-                       @bind="userModel.Address" />
+                    <!-- PHONE -->
+                    <div class="phone-wrapper full-width">
+                        <span class="phone-prefix"></span>
+                        <input class="form-input"
+                               placeholder="Contact Number"
+                               value="@userModel.ContactNumber"
+                               @oninput="FormatContactNumber" />
+                    </div>
 
+                    <input class="form-input full-width"
+                           placeholder="Address"
+                           @bind="userModel.Address" />
+
+                </div>
             </div>
 
-            <!-- PASSWORD -->
+            <!-- ACCOUNT SETUP -->
             <div class="form-section">
-                <h2 class="section-title">🔐 Account Setup</h2>
 
-                <input type="@passwordType"
-                       class="form-input @(passwordError ? "input-error" : "")"
-                       placeholder="Password"
-                       @bind="userModel.TemporaryPassword"
-                       @oninput="ClearError" />
+                <div class="section-title">🔐 Account Setup</div>
 
-                <button type="button" @onclick="TogglePasswordVisibility">👁️</button>
+                <div class="account-box">
 
-                @if (passwordError)
-                {
-                    <span class="error-text">Minimum 8 characters</span>
-                }
+                    <div class="account-grid">
 
-                <button type="button" @onclick="GenerateSecurePassword">
-                    Generate Password
-                </button>
+                        <div class="password-wrapper">
+                            <input type="@passwordType"
+                                   class="form-input @(passwordError ? "input-error" : "")"
+                                   placeholder="Password"
+                                   @bind="userModel.TemporaryPassword"
+                                   @oninput="ClearError" />
 
-                <label>
-                    <input type="checkbox" @bind="userModel.ForcePasswordChangeOnLogin" />
-                    Force password change
-                </label>
+                            <span class="password-toggle"
+                                  @onclick="TogglePasswordVisibility">
+                                👁️
+                            </span>
+                        </div>
+
+                        @if (passwordError)
+                        {
+                            <small class="error-text">Minimum 8 characters</small>
+                        }
+
+                        <button type="button"
+                                class="generate-btn"
+                                @onclick="GenerateSecurePassword">
+                            Generate Secure Password
+                        </button>
+
+                        <label class="status-box">
+                            <input type="checkbox"
+                                   @bind="userModel.ForcePasswordChangeOnLogin" />
+                            Force password change on login
+                        </label>
+
+                    </div>
+                </div>
             </div>
 
             <!-- ROLE -->
             <div class="form-section">
-                <h2>Role</h2>
+                <div class="section-title">Role</div>
 
-                <select class="form-input @(roleError ? "input-error" : "")"
-                        @bind="userModel.Role"
-                        @bind:after="ClearError">
+                <div class="role-box">
+                    <select class="form-input @(roleError ? "input-error" : "")"
+                            @bind="userModel.Role"
+                            @bind:after="ClearError">
 
-                    <option value="">Select Role</option>
-                    <option>Admin</option>
-                    <option>Manager</option>
-                    <option>Staff</option>
-                    <option>Viewer</option>
-                </select>
+                        <option value="">Select Role</option>
+                        <option>Admin</option>
+                        <option>Manager</option>
+                        <option>Staff</option>
+                        <option>Viewer</option>
+
+                    </select>
+                </div>
             </div>
 
             <!-- STATUS -->
             <div class="form-section">
-                <label>
+                <div class="status-box">
                     <input type="checkbox" @bind="userModel.IsActive" />
-                    Active
-                </label>
+                    <label>Active Account</label>
+                </div>
             </div>
 
             <!-- ACTIONS -->
-            <button type="submit" disabled="@isSubmitting">
-                @(isSubmitting ? "Creating..." : "Create User")
-            </button>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                    @(isSubmitting ? "Creating..." : "Create User")
+                </button>
 
-            <button type="button" @onclick="GoBack">Cancel</button>
+                <button type="button" class="btn-secondary" @onclick="GoBack">
+                    Cancel
+                </button>
+            </div>
 
             @if (showSuccessMessage)
             {
-                <p style="color:green;">User created successfully!</p>
+                <p style="color:#1f6f46; margin-top:15px;">User created successfully!</p>
             }
 
             @if (!string.IsNullOrEmpty(generalError))
             {
-                <p style="color:red;">@generalError</p>
+                <p style="color:#ef4444; margin-top:15px;">@generalError</p>
             }
 
         </EditForm>
