@@ -15,27 +15,29 @@
     margin-bottom: 35px;
     gap: 30px;
 }
+.header-title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 
 .header-left {
     display: flex;
-    flex-direction: column; /* ✅ STACK H1 AND P */
-    align-items: flex-start;
+    align-items: center; /* keeps logo and text aligned */
+    gap: 14px;
+}
+.header-title h1 {
+    margin: 0;
+    line-height: 1.1;
+    font-size: 36px;
+    font-weight: 900;
 }
 
-    .header-left h1 {
-        color: #2d8659;
-        font-size: 36px;
-        font-weight: 900;
-        margin: 0;
-        letter-spacing: 0.5px;
-    }
-
-    .header-left p {
-        color: #2d8659;
-        font-size: 14px;
-        font-weight: 500;
-        margin: 6px 0 0 0;
-    }
+.header-title p {
+    margin: 2px 0 0 0;
+    font-size: 12px;
+    color: #2d8659;
+}
 
 /* ================= ACTIVE USERS CARD ================= */
 .active-users-card {
