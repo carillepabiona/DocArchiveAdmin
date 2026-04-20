@@ -1,9 +1,11 @@
 ﻿@page "/user-management"
 @layout MainLayout
 @inject NavigationManager Nav
-@using Microsoft.Maui.Storage
+@inject UserService UserService
+
 @using DocArchiveAdmin.Models
 @using DocArchiveAdmin.Services
+@using DocArchiveAdmin.DTOs
 
 <head>
     <link href="css/users.css" rel="stylesheet" />
@@ -33,7 +35,6 @@
         <table class="users-table">
             <thead>
                 <tr>
-                    <th>User ID</th>
                     <th>Email</th>
                     <th>Status</th>
                     <th>Role</th>
@@ -47,37 +48,46 @@
                     @foreach (var user in filteredUsers)
                     {
                         <tr>
-                            <td class="user-id">@user.UserId</td>
+
                             <td class="email">@user.Email</td>
+
                             <td class="status">
-                                <span class="status-badge @user.Status.ToLower()">
+                                <span class="status-badge @(user.Status?.ToLower())">
                                     @user.Status
                                 </span>
                             </td>
+
                             <td class="role">
                                 <span class="role-badge @GetRoleBadgeClass(user.Role)">
                                     @user.Role
                                 </span>
                             </td>
+
                             <td class="joined">@user.JoinedDate.ToString("MM-dd-yy")</td>
+
                             <td class="actions">
                                 <button class="action-button" @onclick="@(() => OpenActionMenu(user.Id))">
                                     ⋮
                                 </button>
+
                                 @if (openActionMenuId == user.Id)
                                 {
                                     <div class="action-menu">
                                         <button class="menu-item" @onclick="@(() => ViewUser(user))">
                                             <span class="menu-icon">👁️</span> View
                                         </button>
+
                                         <button class="menu-item" @onclick="@(() => EditUser(user))">
                                             <span class="menu-icon">✏️</span> Edit
                                         </button>
+
                                         <button class="menu-item" @onclick="@(() => ResetPassword(user))">
                                             <span class="menu-icon">🔑</span> Reset Password
                                         </button>
+
                                         <button class="menu-item delete" @onclick="@(() => DeactivateUser(user))">
-                                            <span class="menu-icon">🚫</span> Deactivate
+                                            <span class="menu-icon">🚫</span>
+                                            @(user.Status == "Active" ? "Deactivate" : "Activate")
                                         </button>
                                     </div>
                                 }
@@ -96,70 +106,42 @@
     </div>
 </div>
 
-
-
 @code {
     private List<User> allUsers = new();
     private List<User> filteredUsers = new();
     private string searchQuery = "";
     private int? openActionMenuId = null;
 
-    protected override Task OnInitializedAsync()
+    // =========================
+    // LOAD USERS FROM API
+    // =========================
+    protected override async Task OnInitializedAsync()
     {
-        // Sample user data
-        allUsers = new List<User>
+        try
         {
-            new User
-            {
-                Id = 1,
-                UserId = "10035",
-                Email = "juan.delacruz@afp.mil.ph",
-                Status = "Active",
-                Role = "Military Personnel",
-                JoinedDate = new DateTime(2025, 11, 25)
-            },
-            new User
-            {
-                Id = 2,
-                UserId = "10234",
-                Email = "alice@afp.mil.ph",
-                Status = "Active",
-                Role = "Civilian",
-                JoinedDate = new DateTime(2026, 1, 14)
-            },
-            new User
-            {
-                Id = 3,
-                UserId = "10049",
-                Email = "bob@afp.mil.ph",
-                Status = "Inactive",
-                Role = "Civilian",
-                JoinedDate = new DateTime(2025, 12, 8)
-            },
-            new User
-            {
-                Id = 4,
-                UserId = "10087",
-                Email = "maria@afp.mil.ph",
-                Status = "Active",
-                Role = "Admin",
-                JoinedDate = new DateTime(2025, 10, 5)
-            },
-            new User
-            {
-                Id = 5,
-                UserId = "10102",
-                Email = "carlos@afp.mil.ph",
-                Status = "Active",
-                Role = "Civilian",
-                JoinedDate = new DateTime(2026, 2, 10)
-            }
-        };
+            var usersFromDb = await UserService.GetAllUsersAsync();
 
-        filteredUsers = allUsers;
-        return Task.CompletedTask;
+            allUsers = usersFromDb.Select(u => new User
+            {
+                Id = u.Id,
+                UserId = u.UserCode ?? "N/A",
+                Email = u.Email ?? "N/A",
+                Status = u.Status ?? "Inactive",
+                Role = u.Role ?? "Unknown",
+                JoinedDate = u.JoinedDate
+            }).ToList();
+
+            filteredUsers = allUsers;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading users: {ex.Message}");
+        }
     }
 
+    // =========================
+    // SEARCH
+    // =========================
     private void OnSearchChanged(string query)
     {
         searchQuery = query ?? "";
@@ -175,46 +157,68 @@
         else
         {
             var lowerSearch = searchQuery.ToLower();
+
             filteredUsers = allUsers
-                .Where(u => u.UserId.Contains(lowerSearch) ||
-                            u.Email.Contains(lowerSearch) ||
-                            u.Role.Contains(lowerSearch))
+                .Where(u =>
+                    (u.UserId ?? "").ToLower().Contains(lowerSearch) ||
+                    (u.Email ?? "").ToLower().Contains(lowerSearch) ||
+                    (u.Role ?? "").ToLower().Contains(lowerSearch))
                 .ToList();
         }
     }
 
+    // =========================
+    // ACTION MENU
+    // =========================
     private void OpenActionMenu(int userId)
     {
         openActionMenuId = openActionMenuId == userId ? null : userId;
     }
 
+    // =========================
+    // ACTIONS
+    // =========================
     private void ViewUser(User user)
     {
-        Console.WriteLine($"Viewing user: {user.Email}");
+        Nav.NavigateTo($"/user-details/{user.Id}");
         openActionMenuId = null;
     }
 
     private void EditUser(User user)
     {
-        Console.WriteLine($"Editing user: {user.Email}");
+        Nav.NavigateTo($"/edit-user/{user.Id}");
         openActionMenuId = null;
     }
 
-    private void ResetPassword(User user)
+    private async Task ResetPassword(User user)
     {
-        Console.WriteLine($"Resetting password for: {user.Email}");
+        var success = await UserService.ResetPasswordAsync(user.Id);
+
+        Console.WriteLine(success
+            ? $"Password reset for {user.Email}"
+            : $"Failed to reset password");
+
         openActionMenuId = null;
     }
 
-    private void DeactivateUser(User user)
+    private async Task DeactivateUser(User user)
     {
-        user.Status = user.Status == "Active" ? "Inactive" : "Active";
+        var success = await UserService.ToggleUserStatusAsync(user.Id);
+
+        if (success)
+        {
+            user.Status = user.Status == "Active" ? "Inactive" : "Active";
+        }
+
         openActionMenuId = null;
     }
 
+    // =========================
+    // UI HELPERS
+    // =========================
     private string GetRoleBadgeClass(string role)
     {
-        return role.ToLower() switch
+        return role?.ToLower() switch
         {
             "military personnel" => "military",
             "civilian" => "civilian",
@@ -223,10 +227,13 @@
         };
     }
 
+    // =========================
+    // LOCAL UI MODEL
+    // =========================
     public class User
     {
         public int Id { get; set; }
-        public string UserId { get; set; }
+        public string UserId { get; set; }   // UserCode
         public string Email { get; set; }
         public string Status { get; set; }
         public string Role { get; set; }

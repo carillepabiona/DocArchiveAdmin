@@ -15,5 +15,7 @@
         public string Role { get; set; }
         public bool IsActive { get; set; }
         public bool ForcePasswordChangeOnLogin { get; set; }
+
+        public int? AccessLevel { get; set; }
     }
 }

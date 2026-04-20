@@ -114,25 +114,61 @@
                 </div>
             </div>
 
-            <!-- ROLE -->
+            <!-- ROLE + ACCESS LEVEL (COMBINED) -->
             <div class="form-section">
-                <div class="section-title">Role</div>
+                <div class="section-title">Role & Access Level</div>
 
-                <div class="role-box">
-                    <select class="form-input @(roleError ? "input-error" : "")"
-                            @bind="userModel.Role"
-                            @bind:after="ClearError">
+                <div class="role-access-grid">
 
-                        <option value="">Select Role</option>
+                    <!-- ROLE -->
+                    <div class="role-box">
+                        <label style="font-size:12px; color:#6b7280;">Role</label>
 
-                        @foreach (var role in roles)
+                        <select class="form-input @(roleError ? "input-error" : "")"
+                                @bind="userModel.Role"
+                                @bind:after="ClearError">
+
+                            <option value="">Select Role</option>
+
+                            @foreach (var role in roles)
+                            {
+                                <option value="@role.RoleName">
+                                    @role.RoleName
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (roleError)
                         {
-                            <option value="@role.RoleName">
-                                @role.RoleName
-                            </option>
+                            <small class="error-text">Role is required</small>
                         }
+                    </div>
 
-                    </select>
+                    <!-- ACCESS LEVEL -->
+                    <div class="role-box">
+                        <label style="font-size:12px; color:#6b7280;">Access Level</label>
+
+                        <select class="form-input @(accessError ? "input-error" : "")"
+                                @bind="userModel.AccessLevel"
+                                @bind:after="ClearError">
+
+                            <option value="">Select Access Level</option>
+
+                            <option value="1">Level 1 - View</option>
+                            <option value="2">Level 2 - View, Download</option>
+                            <option value="3">Level 3 - View, Download, Edit</option>
+                            <option value="4">Level 4 - View, Download, Edit, Share</option>
+                            <option value="5">Level 5 - Full Access</option>
+
+                        </select>
+
+                        @if (accessError)
+                        {
+                            <small class="error-text">Access level is required</small>
+                        }
+                    </div>
+
                 </div>
             </div>
 
@@ -185,6 +221,8 @@
     private string emailError = "";
 
     private List<RoleDto> roles = new();
+
+    private bool accessError = false;
 
     // =========================
     // INIT
@@ -280,6 +318,7 @@
         usernameError = false;
         passwordError = false;
         roleError = false;
+        accessError = false;
         generalError = "";
     }
 
@@ -291,8 +330,9 @@
         usernameError = string.IsNullOrWhiteSpace(userModel.Username);
         passwordError = string.IsNullOrWhiteSpace(userModel.TemporaryPassword) || userModel.TemporaryPassword.Length < 8;
         roleError = string.IsNullOrWhiteSpace(userModel.Role);
+        accessError = userModel.AccessLevel == null;
 
-        if (usernameError || passwordError || roleError || !string.IsNullOrEmpty(emailError))
+        if (usernameError || passwordError || roleError || accessError || !string.IsNullOrEmpty(emailError))
             return;
 
         isSubmitting = true;
@@ -310,7 +350,8 @@
                 Address = userModel.Address,
                 Role = userModel.Role,
                 IsActive = userModel.IsActive,
-                ForcePasswordChangeOnLogin = userModel.ForcePasswordChangeOnLogin
+                ForcePasswordChangeOnLogin = userModel.ForcePasswordChangeOnLogin,
+                AccessLevel = userModel.AccessLevel // ✅ NEW
             };
 
             await UserService.CreateUserAsync(dto);
@@ -355,6 +396,8 @@
         public bool ForcePasswordChangeOnLogin { get; set; }
         public string Role { get; set; }
         public bool IsActive { get; set; }
+
+        public int? AccessLevel { get; set; }
     }
 
     public class Role

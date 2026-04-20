@@ -1,13 +1,13 @@
-﻿
-/* CONTENT AREA */
+﻿/* ================= CONTENT AREA (FIXED LAYOUT COMPATIBLE) ================= */
 .content {
-    flex: 1;
+    margin-left: 130px; /* 🔥 REQUIRED FIX */
     padding: 30px 40px;
     background-color: #f4f6f8;
-    overflow-y: auto;
+    height: calc(100vh - 85px); /* header height */
+    overflow-y: auto; /* ONLY THIS SCROLLS */
 }
 
-/* DASHBOARD HEADER */
+/* ================= DASHBOARD HEADER ================= */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -16,23 +16,28 @@
     gap: 30px;
 }
 
-.header-left h1 {
-    color: #2d8659;
-    font-size: 36px;
-    font-weight: 900;
-    margin: 0;
-    letter-spacing: 0.5px;
+.header-left {
+    display: flex;
+    flex-direction: column; /* ✅ STACK H1 AND P */
+    align-items: flex-start;
 }
 
-.header-left p {
-    color: #2d8659;
-    font-size: 14px;
-    font-weight: 500;
-    margin: 6px 0 0 0;
-    letter-spacing: 0.3px;
-}
+    .header-left h1 {
+        color: #2d8659;
+        font-size: 36px;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
 
-/* ACTIVE USERS CARD */
+    .header-left p {
+        color: #2d8659;
+        font-size: 14px;
+        font-weight: 500;
+        margin: 6px 0 0 0;
+    }
+
+/* ================= ACTIVE USERS CARD ================= */
 .active-users-card {
     background: white;
     border: 2px solid #1f2937;
@@ -48,7 +53,6 @@
 .users-content {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 4px;
 }
 
@@ -63,7 +67,6 @@
     font-size: 13px;
     font-weight: 600;
     color: #6b7280;
-    letter-spacing: 0.3px;
 }
 
 .users-icon {
@@ -71,7 +74,7 @@
     margin-left: 8px;
 }
 
-/* RECENT ACTIVITY SECTION */
+/* ================= RECENT ACTIVITY ================= */
 .recent-activity-section {
     background: white;
     border: 2px solid #d1d5db;
@@ -85,10 +88,9 @@
         font-size: 22px;
         font-weight: 700;
         margin: 0 0 25px 0;
-        letter-spacing: 0.3px;
     }
 
-/* ACTIVITY LIST */
+/* ================= ACTIVITY LIST ================= */
 .activity-list {
     display: flex;
     flex-direction: column;
@@ -105,15 +107,13 @@
 
     .activity-item:last-child {
         border-bottom: none;
-        padding-bottom: 0;
     }
 
     .activity-item:hover {
         background-color: #f9fafb;
+        margin: 0 -12px;
         padding-left: 12px;
         padding-right: 12px;
-        margin-left: -12px;
-        margin-right: -12px;
         border-radius: 8px;
     }
 
@@ -132,10 +132,9 @@
         color: #6b7280;
         font-size: 13px;
         margin: 0;
-        font-weight: 500;
     }
 
-/* ACTIVITY TIME */
+/* ================= ACTIVITY TIME ================= */
 .activity-time {
     display: flex;
     flex-direction: column;
@@ -143,19 +142,13 @@
     gap: 3px;
 }
 
-    .activity-time .date {
-        color: #9ca3af;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
+    .activity-time .date,
     .activity-time .time {
         color: #9ca3af;
         font-size: 12px;
-        font-weight: 500;
     }
 
-/* EMPTY STATE */
+/* ================= EMPTY STATE ================= */
 .empty-activity {
     padding: 40px 20px;
     text-align: center;
@@ -168,9 +161,12 @@
         font-weight: 500;
     }
 
-/* RESPONSIVE */
+/* ================= RESPONSIVE ================= */
+
+/* TABLET */
 @media (max-width: 1024px) {
     .content {
+        margin-left: 130px;
         padding: 25px;
     }
 
@@ -183,23 +179,15 @@
         font-size: 32px;
     }
 
-    .active-users-card {
-        width: 100%;
-        min-width: auto;
-    }
-
     .recent-activity-section {
         padding: 25px;
     }
-
-        .recent-activity-section h2 {
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
 }
 
+/* MOBILE */
 @media (max-width: 768px) {
     .content {
+        margin-left: 0; /* sidebar becomes top nav */
         padding: 20px;
     }
 
@@ -212,39 +200,12 @@
         font-size: 28px;
     }
 
-    .header-left p {
-        font-size: 13px;
-    }
-
     .active-users-card {
         width: 100%;
-        min-width: auto;
         padding: 20px;
     }
-
-    .users-number {
-        font-size: 40px;
-    }
-
-    .users-label {
-        font-size: 12px;
-    }
-
-    .users-icon {
-        font-size: 28px;
-    }
-
-    .recent-activity-section {
-        padding: 20px;
-    }
-
-        .recent-activity-section h2 {
-            font-size: 18px;
-            margin-bottom: 18px;
-        }
 
     .activity-item {
-        padding: 14px 0;
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
@@ -252,31 +213,17 @@
 
     .activity-time {
         align-items: flex-start;
-        width: 100%;
     }
-
-        .activity-time .date,
-        .activity-time .time {
-            font-size: 11px;
-        }
 }
 
+/* SMALL MOBILE */
 @media (max-width: 480px) {
     .content {
         padding: 15px;
     }
 
-    .dashboard-header {
-        margin-bottom: 20px;
-        gap: 15px;
-    }
-
     .header-left h1 {
         font-size: 24px;
-    }
-
-    .header-left p {
-        font-size: 12px;
     }
 
     .active-users-card {
@@ -285,34 +232,5 @@
 
     .users-number {
         font-size: 36px;
-    }
-
-    .users-label {
-        font-size: 11px;
-    }
-
-    .users-icon {
-        font-size: 24px;
-    }
-
-    .recent-activity-section {
-        padding: 16px;
-    }
-
-        .recent-activity-section h2 {
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-
-    .activity-content h3 {
-        font-size: 14px;
-    }
-
-    .activity-content p {
-        font-size: 12px;
-    }
-
-    .activity-item {
-        padding: 12px 0;
     }
 }

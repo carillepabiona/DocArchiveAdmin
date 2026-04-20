@@ -1,10 +1,11 @@
-﻿
-/* CONTENT AREA */
+﻿/* ================= CONTENT AREA (GLOBAL FIX) ================= */
 .content {
     flex: 1;
     padding: 30px 40px;
+    margin-left: 130px; /* ✅ FIX: aligns with sidebar */
     background-color: #f4f6f8;
     overflow-y: auto;
+    transition: margin-left 0.3s ease;
 }
 
 /* PAGE HEADER */

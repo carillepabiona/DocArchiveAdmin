@@ -7,10 +7,11 @@
 
 <div class="app-shell">
 
-    <!-- HEADER -->
+    <!-- HEADER (FIXED) -->
     <div class="header">
         <div class="header-left">
             <div class="logo"></div>
+
             <div class="header-title">
                 <h1>DASM-AFP</h1>
                 <p>ARMED FORCES OF THE PHILIPPINES</p>
@@ -18,13 +19,13 @@
         </div>
 
         <div class="header-right">
-            <div class="notification-icon" @onclick="OpenNotifications" style="cursor: pointer;">
+            <div class="notification-icon" @onclick="OpenNotifications">
                 🔔
                 <span class="notification-badge">@notificationCount</span>
             </div>
 
             <div class="user-menu-wrapper">
-                <div class="user-info" @onclick="ToggleUserMenu" style="cursor: pointer;">
+                <div class="user-info" @onclick="ToggleUserMenu">
                     <div class="user-details">
                         <div class="user-name">@fullName</div>
                         <div class="user-role">@role</div>
@@ -36,12 +37,13 @@
                 {
                     <div class="user-menu-dropdown">
                         <button class="user-menu-item" @onclick="GoProfile">
-                            <i class="fa-regular fa-circle-user"></i> Profile
+                            👤 Profile
                         </button>
-                    
+
                         <div class="menu-divider"></div>
+
                         <button class="user-menu-item sign-out" @onclick="HandleSignOut">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i>Sign Out
+                            🚪 Sign Out
                         </button>
                     </div>
                 }
@@ -49,65 +51,42 @@
         </div>
     </div>
 
+    <!-- MAIN -->
     <div class="main-container">
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR (FIXED) -->
         <div class="sidebar">
-            <button class="nav-button @(currentPage == "dashboard" ? "active" : "")" @onclick="GoDashboard">
-                📊 Dashboard
-            </button>
-
-            <button class="nav-button @(currentPage == "user-management" ? "active" : "")" @onclick="GoUserManagement">
-                👥 Users
-            </button>
-
-            <button class="nav-button @(currentPage == "documents" ? "active" : "")" @onclick="GoDocuments">
-                📁 Documents
-            </button>
-
-            <button class="nav-button @(currentPage == "create-user" ? "active" : "")" @onclick="GoCreateUser">
-                👤 Create User
-            </button>
-
-            <button class="nav-button @(currentPage == "settings" ? "active" : "")" @onclick="GoSettings">
-                ⚙️ Settings
-            </button>
+            <button class="nav-button @(currentPage == "dashboard" ? "active" : "")" @onclick="GoDashboard">📊 Dashboard</button>
+            <button class="nav-button @(currentPage == "user-management" ? "active" : "")" @onclick="GoUserManagement">👥 Users</button>
+            <button class="nav-button @(currentPage == "documents" ? "active" : "")" @onclick="GoDocuments">📁 Documents</button>
+            <button class="nav-button @(currentPage == "create-user" ? "active" : "")" @onclick="GoCreateUser">👤 Create User</button>
+            <button class="nav-button @(currentPage == "settings" ? "active" : "")" @onclick="GoSettings">⚙️ Settings</button>
         </div>
 
-        <!-- PAGE CONTENT -->
+        <!-- CONTENT (ONLY SCROLLABLE) -->
         <div class="content">
             @Body
         </div>
 
     </div>
 
-    <!-- NOTIFICATIONS PANEL -->
+    <!-- NOTIFICATIONS -->
     @if (showNotificationsPanel)
     {
         <div class="notifications-panel">
             <div class="notifications-header">
                 <h3>Notifications</h3>
-                <button class="close-button" @onclick="CloseNotifications">✕</button>
+                <button @onclick="CloseNotifications">✕</button>
             </div>
 
             <div class="notifications-list">
-                @if (notifications.Count > 0)
+                @foreach (var n in notifications)
                 {
-                    @foreach (var notification in notifications)
-                    {
-                        <div class="notification-item">
-                            <div class="notification-dot"></div>
-                            <div class="notification-content">
-                                <p class="notification-title">@notification.Title</p>
-                                <p class="notification-time">@notification.Time</p>
-                            </div>
+                    <div class="notification-item">
+                        <div class="notification-content">
+                            <p>@n.Title</p>
+                            <small>@n.Time</small>
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-notifications">
-                        <p>No notifications</p>
                     </div>
                 }
             </div>
@@ -177,7 +156,6 @@
             currentPage = "documents";
         else if (uri.Contains("/user-management"))
             currentPage = "user-management";
-      
         else if (uri.Contains("/create-user"))
             currentPage = "create-user";
         else if (uri.Contains("/settings"))
@@ -206,6 +184,7 @@
         showUserMenu = false;
         Nav.NavigateTo("/user-management");
     }
+
     private void GoCreateUser()
     {
         showUserMenu = false;
@@ -221,7 +200,7 @@
     private void GoProfile()
     {
         showUserMenu = false;
-        Nav.NavigateTo("/profile");
+        Nav.NavigateTo("/profile-user");
     }
 
     // ✅ USER MENU
@@ -251,6 +230,7 @@
         showNotificationsPanel = !showNotificationsPanel;
         showUserMenu = false;
     }
+
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
@@ -258,6 +238,7 @@
             WindowService.Attach(App.Current.Windows[0]);
         }
     }
+
     private void CloseNotifications()
     {
         showNotificationsPanel = false;

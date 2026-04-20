@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading.Tasks;
 using DocArchiveAdmin.DTOs;
 
@@ -27,7 +26,24 @@ namespace DocArchiveAdmin.Services
         }
 
         // =========================
-        // GET ROLES (NEW)
+        // GET ALL USERS (FOR TABLE)
+        // =========================
+        public async Task<List<UserListDto>> GetAllUsersAsync()
+        {
+            try
+            {
+                var users = await _http.GetFromJsonAsync<List<UserListDto>>("api/users");
+
+                return users ?? new List<UserListDto>();
+            }
+            catch
+            {
+                return new List<UserListDto>();
+            }
+        }
+
+        // =========================
+        // GET ROLES
         // =========================
         public async Task<List<RoleDto>> GetRolesAsync()
         {
@@ -39,6 +55,53 @@ namespace DocArchiveAdmin.Services
             catch
             {
                 return new List<RoleDto>();
+            }
+        }
+
+        // =========================
+        // RESET PASSWORD
+        // =========================
+        public async Task<bool> ResetPasswordAsync(int userId)
+        {
+            try
+            {
+                var response = await _http.PostAsync($"api/users/{userId}/reset-password", null);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // =========================
+        // ACTIVATE / DEACTIVATE USER
+        // =========================
+        public async Task<bool> ToggleUserStatusAsync(int userId)
+        {
+            try
+            {
+                var response = await _http.PutAsync($"api/users/{userId}/toggle-status", null);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // =========================
+        // GET SINGLE USER (OPTIONAL - VIEW PAGE)
+        // =========================
+        public async Task<UserListDto?> GetUserByIdAsync(int userId)
+        {
+            try
+            {
+                return await _http.GetFromJsonAsync<UserListDto>($"api/users/{userId}");
+            }
+            catch
+            {
+                return null;
             }
         }
     }

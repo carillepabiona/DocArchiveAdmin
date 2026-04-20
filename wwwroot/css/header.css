@@ -8,14 +8,15 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f6f8;
-    min-height: 100vh;
+    min-height: 95vh;
+    overflow: hidden;
 }
 
 /* ================= APP SHELL ================= */
 .app-shell {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     background-color: #f4f6f8;
 }
 
@@ -23,50 +24,56 @@ body {
 .header {
     background-color: #ffffff;
     border-bottom: 5px solid #2d8659;
-    padding: 16px 40px;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    z-index: 1000;
 }
 
 .header-left {
-    display: flex;
+    display: flex !important; /* ✅ forces row layout */
+    flex-direction: row !important;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
 }
 
 .logo {
     width: 65px;
     height: 65px;
-    background: url('/images/logo_afp.png') center/contain no-repeat;
     flex-shrink: 0;
+    display: block;
 }
 
 .header-title {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    justify-content: center;
 }
 
     .header-title h1 {
-        color: #b8860b;
-        font-size: 24px;
+        color: #2d8659;
+        font-size: 22px;
         font-weight: 900;
-        letter-spacing: 1.5px;
         margin: 0;
+        letter-spacing: 1.2px;
         text-transform: uppercase;
-        line-height: 1;
     }
 
     .header-title p {
-        font-size: 11px;
-        color: #b8860b;
-        margin: 0;
+        font-size: 10px;
+        color: #2d8659;
+        margin: 2px 0 0 0;
         font-weight: 600;
         letter-spacing: 1px;
         text-transform: uppercase;
+        opacity: 0.85;
     }
 
 /* RIGHT */
@@ -120,12 +127,7 @@ body {
     align-items: center;
     gap: 14px;
     cursor: pointer;
-    transition: 0.3s;
 }
-
-    .user-info:hover {
-        transform: scale(1.02);
-    }
 
 .user-details {
     text-align: right;
@@ -135,15 +137,14 @@ body {
     font-size: 13px;
     font-weight: 700;
     color: #1f2937;
-    line-height: 1;
 }
 
 .user-role {
     font-size: 11px;
     color: #6b7280;
-    margin-top: 3px;
 }
 
+/* AVATAR */
 .user-avatar {
     width: 48px;
     height: 48px;
@@ -154,8 +155,6 @@ body {
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    font-size: 16px;
-    flex-shrink: 0;
     border: 3px solid #2d8659;
 }
 
@@ -228,11 +227,12 @@ body {
 /* ================= LAYOUT ================= */
 .main-container {
     display: flex;
-    flex: 1;
-    min-height: calc(100vh - 90px);
+    margin-top: 90px;
+    height: calc(100vh - 90px);
+    overflow: hidden;
 }
 
-/* ================= SIDEBAR ================= */
+/* ================= SIDEBAR (FIXED) ================= */
 .sidebar {
     width: 260px;
     background: linear-gradient(180deg, #3da870 0%, #2d8659 100%);
@@ -240,58 +240,60 @@ body {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 90px;
+    left: 0;
+    bottom: 0;
     overflow-y: auto;
+    z-index: 999;
 }
 
+/* NAV BUTTON */
 .nav-button {
     padding: 14px 18px;
     border-radius: 8px;
     border: none;
     background: rgba(255, 255, 255, 0.2);
-    color: #1f2937;
+    color: white;
     font-weight: 700;
-    text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: 0.3s;
     font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: left;
 }
 
     .nav-button:hover {
-        background: rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.3);
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     .nav-button.active {
         background: white;
         color: #2d8659;
-        font-weight: 800;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
-/* ================= CONTENT ================= */
+/* ================= CONTENT (ONLY SCROLL AREA) ================= */
 .content {
+    margin-left: 260px;
     flex: 1;
     background-color: #f4f6f8;
+    padding: 30px;
+    height: calc(100vh - 90px);
     overflow-y: auto;
 }
 
 /* ================= NOTIFICATIONS PANEL ================= */
 .notifications-panel {
     position: fixed;
-    top: 90px;
+    top: 100px;
     right: 20px;
     width: 340px;
     background: white;
     border: 2px solid #2d8659;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     z-index: 200;
-    max-height: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-height: 600px;
     display: flex;
     flex-direction: column;
     animation: slideInRight 0.3s ease-out;
@@ -327,25 +329,25 @@ body {
         letter-spacing: 0.5px;
     }
 
-.close-button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #6b7280;
-    padding: 0;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-}
-
-    .close-button:hover {
-        color: #2d8659;
-        transform: scale(1.1);
+    .notifications-header button {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
     }
+
+        .notifications-header button:hover {
+            color: #2d8659;
+            transform: scale(1.1);
+        }
 
 .notifications-list {
     flex: 1;
@@ -383,26 +385,17 @@ body {
     flex: 1;
 }
 
-.notification-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 4px 0;
-}
+    .notification-content p {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 4px 0;
+    }
 
-.notification-time {
-    font-size: 11px;
-    color: #9ca3af;
-    margin: 0;
-}
-
-.empty-notifications {
-    padding: 40px 16px;
-    text-align: center;
-    color: #9ca3af;
-    font-size: 13px;
-    font-weight: 500;
-}
+    .notification-content small {
+        font-size: 11px;
+        color: #9ca3af;
+    }
 
 /* ================= RESPONSIVE ================= */
 
@@ -419,6 +412,10 @@ body {
 
     .header-title h1 {
         font-size: 20px;
+    }
+
+    .header-title p {
+        font-size: 10px;
     }
 
     .sidebar {
@@ -440,6 +437,10 @@ body {
         width: 300px;
         right: 15px;
     }
+
+    .content {
+        margin-left: 200px;
+    }
 }
 
 /* MOBILE */
@@ -453,14 +454,32 @@ body {
         min-height: auto;
     }
 
+    .header-title {
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .header-title h1 {
+            font-size: 16px;
+        }
+
+        .header-title p {
+            font-size: 9px;
+        }
+
     .sidebar {
+        position: fixed;
         flex-direction: row;
         width: 100%;
+        height: auto;
         overflow-x: auto;
         overflow-y: hidden;
         padding: 12px;
         gap: 8px;
         border-bottom: 3px solid #2d8659;
+        top: 90px;
+        left: 0;
+        bottom: auto;
     }
 
     .nav-button {
@@ -492,14 +511,6 @@ body {
         font-size: 14px;
     }
 
-    .header-title h1 {
-        font-size: 16px;
-    }
-
-    .header-title p {
-        font-size: 9px;
-    }
-
     .user-menu-dropdown {
         min-width: 170px;
         right: -10px;
@@ -514,6 +525,8 @@ body {
 
     .content {
         padding: 20px;
+        margin-left: 0;
+        margin-top: 60px;
     }
 }
 
@@ -528,13 +541,18 @@ body {
         height: 45px;
     }
 
-    .header-title h1 {
-        font-size: 14px;
+    .header-title {
+        flex-direction: column;
+        gap: 2px;
     }
 
-    .header-title p {
-        font-size: 8px;
-    }
+        .header-title h1 {
+            font-size: 14px;
+        }
+
+        .header-title p {
+            font-size: 8px;
+        }
 
     .sidebar {
         padding: 10px;
