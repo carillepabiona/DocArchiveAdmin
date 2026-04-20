@@ -279,7 +279,6 @@ body {
     background-color: #f4f6f8;
     padding: 30px;
     height: calc(100vh - 90px);
-    overflow-y: auto;
 }
 
 /* ================= NOTIFICATIONS PANEL ================= */
