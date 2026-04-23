@@ -1,5 +1,7 @@
 ﻿@page "/profile-user"
 @inject NavigationManager Nav
+@using DocArchiveAdmin.Services
+@inject UserService UserService
 @using Microsoft.Maui.Storage
 @using System.IdentityModel.Tokens.Jwt
 @using System.Security.Claims
@@ -11,6 +13,7 @@
 
 <div class="profile-container">
 
+    <!-- PROFILE CARD -->
     <div class="profile-card">
 
         <div class="profile-card-header">
@@ -21,75 +24,72 @@
             </button>
         </div>
 
-        @if (!isEditMode)
-        {
-            <div class="profile-content">
+        <div class="profile-content">
 
-                <div class="profile-section">
-                    <div class="avatar-name-section">
-                        <div class="avatar-circle">@initials</div>
+            <!-- PROFILE HEADER -->
+            <div class="profile-section">
+                <div class="avatar-name-section">
+                    <div class="avatar-circle">@initials</div>
 
-                        <div class="name-info">
-                            <h2>@username</h2>
-                            <p class="rank">@fullName</p>
-                            <p class="organization">Employee ID: @userCode</p>
-                        </div>
+                    <div class="name-info">
+                        <h2>@username</h2>
+                        <p class="rank">@fullName</p>
+                        <p class="organization">Employee ID: @userCode</p>
                     </div>
                 </div>
-
-                <div class="profile-row">
-                    <span class="icon">✉️</span>
-                    <span class="label">Email:</span>
-                    <span class="value">@email</span>
-                </div>
-
-                <div class="profile-row">
-                    <span class="icon">📱</span>
-                    <span class="label">Phone:</span>
-                    <span class="value">@phone</span>
-                </div>
-
-                <div class="profile-row">
-                    <span class="icon">📍</span>
-                    <span class="label">Address:</span>
-                    <span class="value">@address</span>
-                </div>
-
-                <div class="profile-row">
-                    <span class="icon">🛡️</span>
-                    <span class="label">Role:</span>
-                    <span class="value">@role</span>
-                </div>
-
             </div>
-        }
-        else
-        {
-            <div class="profile-edit-form">
 
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input class="form-input" @bind="editPhone" />
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Address</label>
-                    <input class="form-input" @bind="editAddress" />
-                </div>
-
-                <div class="form-actions">
-                    <button class="save-button" @onclick="SaveProfile">
-                        Save
-                    </button>
-
-                    <button class="cancel-button" @onclick="ToggleEditMode">
-                        Cancel
-                    </button>
-                </div>
-
+            <!-- EMAIL (READ ONLY) -->
+            <div class="profile-row">
+                <span class="icon">✉️</span>
+                <span class="label">Email:</span>
+                <input class="form-input readonly" value="@email" readonly />
             </div>
-        }
 
+            <!-- PHONE (EDITABLE) -->
+            <div class="profile-row">
+                <span class="icon">📱</span>
+                <span class="label">Phone:</span>
+                <input class="form-input"
+                       @bind="editPhone"
+                       readonly="@(!isEditMode)" />
+            </div>
+
+            <!-- ADDRESS (EDITABLE) -->
+            <div class="profile-row">
+                <span class="icon">📍</span>
+                <span class="label">Address:</span>
+                <input class="form-input"
+                       @bind="editAddress"
+                       readonly="@(!isEditMode)" />
+            </div>
+
+            <!-- ROLE (READ ONLY) -->
+            <div class="profile-row">
+                <span class="icon">🛡️</span>
+                <span class="label">Role:</span>
+                <input class="form-input readonly" value="@role" readonly />
+            </div>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="form-actions">
+            @if (isEditMode)
+            {
+                <button class="save-button" @onclick="SaveProfile">
+                    Save Changes
+                </button>
+            }
+        </div>
+
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="back-button-container">
+        <button class="back-button" @onclick="@(() => Nav.NavigateTo("/dashboard"))">
+            ← Back to Dashboard
+        </button>
     </div>
 
 </div>
@@ -98,7 +98,6 @@
 
     private bool isEditMode;
 
-    // ===== DATA =====
     private string username = "";
     private string fullName = "";
     private string email = "";
@@ -108,7 +107,6 @@
     private string role = "";
     private string initials = "";
 
-    // edit only
     private string editPhone = "";
     private string editAddress = "";
 
@@ -121,7 +119,7 @@
     {
         var token = await SecureStorage.GetAsync("jwt_token");
 
-        if (string.IsNullOrEmpty(token))
+        if (string.IsNullOrWhiteSpace(token))
         {
             Nav.NavigateTo("/");
             return;
@@ -130,22 +128,18 @@
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(token);
 
-        // ✅ FIXED: use correct claim types
         username = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "";
         role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "Employee";
 
-        fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "";
+        fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? username;
         email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "";
         phone = jwt.Claims.FirstOrDefault(c => c.Type == "phone")?.Value ?? "";
         address = jwt.Claims.FirstOrDefault(c => c.Type == "address")?.Value ?? "";
         userCode = jwt.Claims.FirstOrDefault(c => c.Type == "userCode")?.Value ?? "";
 
-        // fallback (IMPORTANT FIX)
-        if (string.IsNullOrWhiteSpace(fullName))
-            fullName = username;
-
         initials = string.Join("",
             fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x[0])
         ).ToUpper();
 
@@ -157,6 +151,7 @@
     {
         if (isEditMode)
         {
+            // revert changes
             editPhone = phone;
             editAddress = address;
         }
@@ -166,10 +161,28 @@
 
     private async Task SaveProfile()
     {
-        // TODO: call API update endpoint
-        phone = editPhone;
-        address = editAddress;
+        Console.WriteLine("Saving...");
 
-        isEditMode = false;
+        var success = await UserService.UpdateProfile(editPhone, editAddress);
+
+        if (success)
+        {
+            // ✅ Update UI directly
+            phone = editPhone;
+            address = editAddress;
+
+            isEditMode = false;
+
+            Console.WriteLine("Update success");
+        }
+        else
+        {
+            Console.WriteLine("Update failed");
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/dashboard");
     }
 }
