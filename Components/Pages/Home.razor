@@ -11,87 +11,101 @@
     <link rel="stylesheet" href="css/login.css" />
 </head>
 
-<div class="login-page">
-    <button class="close-btn" @onclick="ExitApp">✕</button>
-
-    <div class="login-container">
-
-        <div class="logo-section">
-            <img src="images/logo_afp.png" class="logo" />
-            <h1>DASM-AFP</h1>
+@if (isCheckingSetup)
+{
+    <!-- ================= LOADING STATE ================= -->
+    <div class="login-page">
+        <div class="login-container">
+            <h2>Checking system setup...</h2>
         </div>
-
-        <EditForm Model="@loginModel" OnSubmit="HandleLogin">
-
-            <h2 class="login-title">Login</h2>
-
-            <!-- USERNAME -->
-            <div class="input-wrapper @(usernameError ? "input-error" : "")">
-                <i class="fa-solid fa-user"></i>
-
-                <input @bind="loginModel.Username"
-                       class="form-control"
-                       placeholder="Admin ID"
-                       @oninput="ClearError" />
-            </div>
-
-            @if (usernameError)
-            {
-                <span class="error-text">Username is required</span>
-            }
-
-            <!-- PASSWORD -->
-            <div class="input-wrapper @(passwordError ? "input-error" : "")">
-                <i class="fa-solid fa-lock"></i>
-
-                <input @bind="loginModel.Password"
-                       type="@passwordType"
-                       class="form-control"
-                       placeholder="Password" />
-
-                <i class="fa-solid @(passwordType == "password" ? "fa-eye" : "fa-eye-slash") eye-icon"
-                   @onclick="TogglePassword"></i>
-            </div>
-
-            @if (passwordError)
-            {
-                <span class="error-text">Password is required</span>
-            }
-
-            <!-- LOCK MESSAGE -->
-            @if (isLocked)
-            {
-                <div class="lock-box">
-                    🚫 Account locked due to failed attempts
-                    <br />
-                    Try again in: <b>@remainingMinutes minutes</b>
-                </div>
-            }
-
-            <!-- LOGIN BUTTON -->
-            <button type="submit" class="login-btn">
-                @if (isLoading)
-                {
-                    <span class="spinner"></span>
-                    <span>Logging in...</span>
-                }
-                else
-                {
-                    <span>Log In</span>
-                }
-            </button>
-
-        </EditForm>
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <p class="error-text">@errorMessage</p>
-        }
-
     </div>
-</div>
+}
+else
+{
+    <!-- ================= LOGIN UI ================= -->
+    <div class="login-page">
+        <button class="close-btn" @onclick="ExitApp">✕</button>
+
+        <div class="login-container">
+
+            <div class="logo-section">
+                <img src="images/logo_afp.png" class="logo" />
+                <h1>DASM-AFP</h1>
+            </div>
+
+            <EditForm Model="@loginModel" OnSubmit="HandleLogin">
+
+                <h2 class="login-title">Login</h2>
+
+                <!-- USERNAME -->
+                <div class="input-wrapper @(usernameError ? "input-error" : "")">
+                    <i class="fa-solid fa-user"></i>
+
+                    <input @bind="loginModel.Username"
+                           class="form-control"
+                           placeholder="Admin ID"
+                           @oninput="ClearError" />
+                </div>
+
+                @if (usernameError)
+                {
+                    <span class="error-text">Username is required</span>
+                }
+
+                <!-- PASSWORD -->
+                <div class="input-wrapper @(passwordError ? "input-error" : "")">
+                    <i class="fa-solid fa-lock"></i>
+
+                    <input @bind="loginModel.Password"
+                           type="@passwordType"
+                           class="form-control"
+                           placeholder="Password" />
+
+                    <i class="fa-solid @(passwordType == "password" ? "fa-eye" : "fa-eye-slash") eye-icon"
+                       @onclick="TogglePassword"></i>
+                </div>
+
+                @if (passwordError)
+                {
+                    <span class="error-text">Password is required</span>
+                }
+
+                <!-- LOCK MESSAGE -->
+                @if (isLocked)
+                {
+                    <div class="lock-box">
+                        🚫 Account locked due to failed attempts
+                        <br />
+                        Try again in: <b>@remainingMinutes minutes</b>
+                    </div>
+                }
+
+                <!-- LOGIN BUTTON -->
+                <button type="submit" class="login-btn">
+                    @if (isLoading)
+                    {
+                        <span class="spinner"></span>
+                        <span>Logging in...</span>
+                    }
+                    else
+                    {
+                        <span>Log In</span>
+                    }
+                </button>
+
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <p class="error-text">@errorMessage</p>
+            }
+
+        </div>
+    </div>
+}
 
 @code {
+
     private LoginModel loginModel = new();
     private string? errorMessage;
 
@@ -105,22 +119,61 @@
     private bool isLocked = false;
     private DateTime lockUntil;
 
+    private bool isCheckingSetup = true;
+
     private int remainingMinutes =>
         isLocked ? (int)Math.Ceiling((lockUntil - DateTime.Now).TotalMinutes) : 0;
 
-    protected override void OnAfterRender(bool firstRender)
+    // =====================================================
+    // INIT
+    // =====================================================
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             WindowService?.SetLoginMode();
+
+            await CheckSystemSetup();
         }
     }
 
+    // =====================================================
+    // CHECK IF SYSTEM HAS ADMIN
+    // =====================================================
+    private async Task CheckSystemSetup()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<CheckAdminResponse>("api/login/check-admin");
+
+            if (result != null && !result.hasUsers)
+            {
+                Nav.NavigateTo("/create-user", true);
+                return;
+            }
+        }
+        catch
+        {
+            errorMessage = "Unable to connect to server.";
+        }
+        finally
+        {
+            isCheckingSetup = false;
+            StateHasChanged();
+        }
+    }
+
+    // =====================================================
+    // EXIT APP
+    // =====================================================
     private void ExitApp()
     {
         WindowService?.ExitApp();
     }
 
+    // =====================================================
+    // LOGIN HANDLER
+    // =====================================================
     private async Task HandleLogin()
     {
         ValidateInputs();
@@ -146,6 +199,14 @@
 
             if (!response.IsSuccessStatusCode)
             {
+                var errorContent = await response.Content.ReadAsStringAsync();
+
+                if (errorContent.Contains("requiresSetup"))
+                {
+                    Nav.NavigateTo("/create-user", true);
+                    return;
+                }
+
                 failedAttempts++;
                 errorMessage = "Invalid username or password.";
 
@@ -169,7 +230,7 @@
                 return;
             }
 
-            // ================= ROLE CHECK (ADMIN ONLY APP) =================
+            // ================= ROLE CHECK =================
             if (result.Role != "Admin")
             {
                 errorMessage = "Access denied. This application is for Admin users only.";
@@ -198,6 +259,9 @@
         }
     }
 
+    // =====================================================
+    // LOCK ACCOUNT
+    // =====================================================
     private void LockAccount()
     {
         isLocked = true;
@@ -218,6 +282,9 @@
         });
     }
 
+    // =====================================================
+    // VALIDATION
+    // =====================================================
     private void ValidateInputs()
     {
         usernameError = string.IsNullOrWhiteSpace(loginModel.Username);
@@ -233,5 +300,13 @@
     private void TogglePassword()
     {
         passwordType = passwordType == "password" ? "text" : "password";
+    }
+
+    // =====================================================
+    // RESPONSE MODEL
+    // =====================================================
+    public class CheckAdminResponse
+    {
+        public bool hasUsers { get; set; }
     }
 }
